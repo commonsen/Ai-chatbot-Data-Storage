@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot with Google Drive</title>
+    <style>
+        #chat {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            height: 200px;
+            overflow-y: scroll;
+        }
+
+        input[type="text"] {
+            width: 80%;
+            padding: 5px;
+        }
+
+        button {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="chat"></div>
+<input type="text" id="userInput" />
+<button onclick="sendMessage()">Send</button>
+
+<script>
+    let chatDiv = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        chatDiv = document.getElementById('chat');
+    });
+
+    function sendMessage() {
+        const userInputElement = document.getElementById('userInput');
+
+        if (!userInputElement || !(userInputElement instanceof HTMLInputElement)) {
+            console.error('userInputElement is null or not an input element');
+            return;
+        }
+
+        const userInput = userInputElement.value.trim();
+
+        if (userInput === '') return;
+
+        // Bot response logic
+        let botResponse = "I don't know what it means. Tell me how I should respond.";
+
+        // Check if there is a stored response for the user's input
+        const storedResponse = localStorage.getItem(userInput.toLowerCase());
+        if (storedResponse) {
+            botResponse = storedResponse;
+        } else {
+            // Ask the user for a response and store it
+            const suggestedResponse = prompt("I don't know what it means. Tell me how I should respond.");
+            if (suggestedResponse) {
+                localStorage.setItem(userInput.toLowerCase(), suggestedResponse);
+                botResponse = 'Okay, got it!';
+
+                // Save the response to Google Drive
+                saveToGoogleDrive(userInput, suggestedResponse);
+            }
+        }
+
+        displayMessage('You', userInput);
+        displayMessage('Bot', botResponse);
+
+        // Clear the input field
+        userInputElement.value = '';
+    }
+
+    function displayMessage(sender, message) {
+        if (!chatDiv) {
+            console.error('chatDiv is null');
+            return;
+        }
+
+        const messageElement = document.createElement('p');
+        messageElement.textContent = `${sender}: ${message}`;
+        chatDiv.appendChild(messageElement);
+    }
+
+    async function saveToGoogleDrive(userInput, suggestedResponse) {
+        // Replace 'YOUR_GOOGLE_DRIVE_API_KEY' with your actual Google Drive API key
+        const apiKey = 'AIzaSyDmWeaAy-QuD5fxZTyuO48LQ_O-EXXCkKI';
+        const endpoint = 'https://www.googleapis.com/upload/drive/v3/files';
+        const mimeType = 'application/json';
+
+        const fileContent = JSON.stringify({ userInput, suggestedResponse });
+
+        try {
+            const response = await fetch(`${endpoint}?uploadType=media&key=${apiKey}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': mimeType,
+                },
+                body: fileContent,
+            });
+
+            if (response.ok) {
+                console.log('Data saved to Google Drive successfully.');
+            } else {
+                console.error('Failed to save data to Google Drive.');
+            }
+        } catch (error) {
+            console.error('Error while saving data to Google Drive:', error);
+        }
+    }
+</script>
+
+</body>
+</html>
