@@ -3,32 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot with Google Drive</title>
+    <title>Chatbot with Local Storage</title>
     <style>
+        body {
+            font-family: 'Courier New', Courier, monospace; /* Changed font to Courier New */
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         #chat {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 10px;
-            height: 200px;
-            overflow-y: scroll;
+            border: 2px solid #00bfff;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #ffffff;
+            width: 60%;
+            max-width: 600px;
+            min-height: 300px;
+            overflow-y: auto;
+            border-radius: 10px;
         }
 
         input[type="text"] {
-            width: 80%;
-            padding: 5px;
+            width: 60%;
+            padding: 10px;
+            border: 2px solid #00bfff;
+            border-radius: 5px;
+            margin-top: 20px;
         }
 
         button {
-            padding: 5px 10px;
+            padding: 10px 20px;
             cursor: pointer;
+            background-color: #00bfff;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0077cc;
         }
     </style>
 </head>
 <body>
 
 <div id="chat"></div>
-<input type="text" id="userInput" />
+<input type="text" id="userInput" placeholder="Type your message here..." />
 <button onclick="sendMessage()">Send</button>
+
+<!-- Display "Made by NJ" -->
+<div id="madeByNJ" contenteditable="false">Made by NJ</div>
 
 <script>
     let chatDiv = null;
@@ -47,31 +77,30 @@
 
         const userInput = userInputElement.value.trim();
 
+        if (userInput === '#clear@') {
+            localStorage.clear();
+            chatDiv.innerHTML = '';
+            userInputElement.value = '';
+            return;
+        }
+
         if (userInput === '') return;
 
-        // Bot response logic
         let botResponse = "I don't know what it means. Tell me how I should respond.";
 
-        // Check if there is a stored response for the user's input
         const storedResponse = localStorage.getItem(userInput.toLowerCase());
         if (storedResponse) {
             botResponse = storedResponse;
         } else {
-            // Ask the user for a response and store it
             const suggestedResponse = prompt("I don't know what it means. Tell me how I should respond.");
             if (suggestedResponse) {
                 localStorage.setItem(userInput.toLowerCase(), suggestedResponse);
                 botResponse = 'Okay, got it!';
-
-                // Save the response to Google Drive
-                saveToGoogleDrive(userInput, suggestedResponse);
             }
         }
 
         displayMessage('You', userInput);
         displayMessage('Bot', botResponse);
-
-        // Clear the input field
         userInputElement.value = '';
     }
 
@@ -86,32 +115,11 @@
         chatDiv.appendChild(messageElement);
     }
 
-    async function saveToGoogleDrive(userInput, suggestedResponse) {
-        // Replace 'YOUR_GOOGLE_DRIVE_API_KEY' with your actual Google Drive API key
-        const apiKey = 'AIzaSyDmWeaAy-QuD5fxZTyuO48LQ_O-EXXCkKI';
-        const endpoint = 'https://www.googleapis.com/upload/drive/v3/files';
-        const mimeType = 'application/json';
+    // Prevent any changes to the content of the "Made by NJ" div
+    document.getElementById('madeByNJ').addEventListener('input', function(event) {
+        this.innerText = 'Made by NJ'; // Reset the content if changed
+    });
 
-        const fileContent = JSON.stringify({ userInput, suggestedResponse });
-
-        try {
-            const response = await fetch(`${endpoint}?uploadType=media&key=${apiKey}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': mimeType,
-                },
-                body: fileContent,
-            });
-
-            if (response.ok) {
-                console.log('Data saved to Google Drive successfully.');
-            } else {
-                console.error('Failed to save data to Google Drive.');
-            }
-        } catch (error) {
-            console.error('Error while saving data to Google Drive:', error);
-        }
-    }
 </script>
 
 </body>
