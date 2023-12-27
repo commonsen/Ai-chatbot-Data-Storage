@@ -6,8 +6,9 @@
     <title>Chatbot with Local Storage</title>
     <style>
         body {
-            font-family: 'Courier New', Courier, monospace; /* Changed font to Courier New */
-            background-color: #f4f4f4;
+            font-family: 'Courier New', Courier, monospace;
+            background-color: black;
+            color: green;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -19,11 +20,11 @@
             border: 2px solid #00bfff;
             padding: 20px;
             margin: 20px 0;
-            background-color: #ffffff;
+            background-color: #000000;
             width: 60%;
             max-width: 600px;
             min-height: 300px;
-            overflow-y: auto;
+            overflow-y: scroll;  /* Scroll bar added */
             border-radius: 10px;
         }
 
@@ -33,6 +34,10 @@
             border: 2px solid #00bfff;
             border-radius: 5px;
             margin-top: 20px;
+            background-color: #000000;
+            color: green;
+            font-weight: bold;
+            font-size: 18px; /* Increased font size */
         }
 
         button {
@@ -41,13 +46,17 @@
             background-color: #00bfff;
             border: none;
             border-radius: 5px;
-            color: white;
+            color: black;
             margin-top: 20px;
             transition: background-color 0.3s;
+            font-weight: bold;
+            font-size: 18px; /* Increased font size */
         }
 
-        button:hover {
-            background-color: #0077cc;
+        p {
+            font-weight: bold;
+            color: green;
+            font-size: 20px; /* Increased font size */
         }
     </style>
 </head>
@@ -57,11 +66,10 @@
 <input type="text" id="userInput" placeholder="Type your message here..." />
 <button onclick="sendMessage()">Send</button>
 
-<!-- Display "Made by NJ" -->
-<div id="madeByNJ" contenteditable="false">Made by NJ</div>
-
 <script>
     let chatDiv = null;
+    let lastUserInput = '';
+    let lastBotResponse = '';
 
     document.addEventListener('DOMContentLoaded', function () {
         chatDiv = document.getElementById('chat');
@@ -69,38 +77,48 @@
 
     function sendMessage() {
         const userInputElement = document.getElementById('userInput');
-
         if (!userInputElement || !(userInputElement instanceof HTMLInputElement)) {
             console.error('userInputElement is null or not an input element');
             return;
         }
 
-        const userInput = userInputElement.value.trim();
+        const userInput = userInputElement.value.trim().toLowerCase();
 
-        if (userInput === '#clear@') {
+        if (userInput === '#change@') {
+            const newResponse = prompt("Give me another answer:");
+            if (newResponse && lastUserInput && lastBotResponse) {
+                localStorage.setItem(lastUserInput, newResponse);
+                lastBotResponse = newResponse;
+            }
+        } else if (userInput === '#clear@') {
             localStorage.clear();
             chatDiv.innerHTML = '';
-            userInputElement.value = '';
-            return;
-        }
-
-        if (userInput === '') return;
-
-        let botResponse = "I don't know what it means. Tell me how I should respond.";
-
-        const storedResponse = localStorage.getItem(userInput.toLowerCase());
-        if (storedResponse) {
-            botResponse = storedResponse;
         } else {
-            const suggestedResponse = prompt("I don't know what it means. Tell me how I should respond.");
-            if (suggestedResponse) {
-                localStorage.setItem(userInput.toLowerCase(), suggestedResponse);
-                botResponse = 'Okay, got it!';
+            let botResponse = "I don't know what it means. Tell me how I should respond.";
+            
+            if (userInput === 'hello') {
+                botResponse = 'Hi! 😊';
+            } else if (userInput.includes('how are you')) {
+                botResponse = 'I am just a bot, but thanks for asking! 😅';
+            } else {
+                const storedResponse = localStorage.getItem(userInput);
+                if (storedResponse) {
+                    botResponse = storedResponse;
+                } else {
+                    const suggestedResponse = prompt("I don't know what it means. Tell me how I should respond.");
+                    if (suggestedResponse) {
+                        localStorage.setItem(userInput, suggestedResponse);
+                        botResponse = 'Okay, got it! 😎';
+                    }
+                }
             }
+
+            displayMessage('You', userInput);
+            displayMessage('Bot', botResponse);
+            lastUserInput = userInput;
+            lastBotResponse = botResponse;
         }
 
-        displayMessage('You', userInput);
-        displayMessage('Bot', botResponse);
         userInputElement.value = '';
     }
 
@@ -114,11 +132,6 @@
         messageElement.textContent = `${sender}: ${message}`;
         chatDiv.appendChild(messageElement);
     }
-
-    // Prevent any changes to the content of the "Made by NJ" div
-    document.getElementById('madeByNJ').addEventListener('input', function(event) {
-        this.innerText = 'Made by NJ'; // Reset the content if changed
-    });
 
 </script>
 
