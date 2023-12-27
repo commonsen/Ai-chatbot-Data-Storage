@@ -10,6 +10,7 @@ This chatbot isn't just about answering questions; it's about growing with you. 
 - **Personalized Interactions**: As you chat more, the bot learns and adapts to your style.
 - **Local Storage**: Save and retrieve previous conversations for a more continuous experience.
 - **Clear Commands**: Use special commands like `#clear@` to reset and start anew.
+- **Modify Bot Responses**: Introducing the `#change@` command! Want to tweak a bot response? Just type `#change@` during the chat. The bot will ask for a new response, and it'll update its database accordingly!
 
 ## How to Use
 1. Clone this repository to your local machine.
